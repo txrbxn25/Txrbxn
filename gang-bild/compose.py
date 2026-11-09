@@ -86,7 +86,9 @@ edges=cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINAR
 q=cv2.bitwise_and(q,q,mask=edges)
 # subtle purple rim tint
 q=cv2.cvtColor(q,cv2.COLOR_BGR2RGB).astype(np.float32); q=np.clip(q*0.95+np.array([10,0,22]),0,255).astype(np.uint8)
-alpha=np.array(car)[:,:,3]; car=Image.fromarray(np.dstack([q,alpha]),'RGBA')
+alpha=np.array(car)[:,:,3]
+exec(open('door.py').read())
+car=Image.fromarray(open_door(np.ascontiguousarray(np.dstack([q,alpha]))),'RGBA')
 car=outline(pad(car,12),5,(0,0,0,255))
 cpos=(10,1160-car.height); bg.alpha_composite(car,cpos)
 # headlight flare
@@ -163,7 +165,23 @@ ho=outline(pad(ho,20),7,(0,0,0,255)); ho=outline(ho,6,(255,255,255,255))
 hpos=(W-ho.width+30,H-ho.height-15)
 shadow(bg,ho,hpos,off=(-22,10),alpha=180,blur=8); bg.alpha_composite(ho,hpos)
 
-scatter([(520,1120,0.85,20),(40,1040,0.7,-8)])
+scatter([(40,1040,0.7,-8)])
+# ---------- 3 x 1kg packages ----------
+def brick(x,y,d,w=150,h=58,dep=34,rot=0):
+    top=[(x,y),(x+w,y),(x+w+dep,y-dep*0.6),(x+dep,y-dep*0.6)]
+    side=[(x+w,y),(x+w+dep,y-dep*0.6),(x+w+dep,y+h-dep*0.6),(x+w,y+h)]
+    d.polygon([(x,y),(x+w,y),(x+w,y+h),(x,y+h)],fill=(196,160,104),outline=(0,0,0),width=4)
+    d.polygon(top,fill=(226,194,140),outline=(0,0,0),width=4)
+    d.polygon(side,fill=(150,118,72),outline=(0,0,0),width=4)
+    for k in (0.28,0.72):  # tape bands
+        d.line([(x+w*k,y+2),(x+w*k,y+h-2)],fill=(120,90,50),width=8)
+        d.line([(x+w*k+dep*0.5,y-dep*0.3),(x+w*k,y)],fill=(120,90,50),width=8)
+    d.rectangle([x+w*0.36,y+12,x+w*0.64,y+h-12],fill=(250,250,245),outline=(0,0,0),width=3)
+    d.text((x+w/2,y+h/2+1),'1KG',font=F(24),fill=(0,0,0),anchor='mm')
+    d.text((x+w*0.14,y+h/2),'76',font=F(20),fill=(200,20,30),anchor='mm')
+pk=Image.new('RGBA',(W,H),(0,0,0,0)); pd=ImageDraw.Draw(pk)
+brick(372,1188,pd); brick(530,1196,pd,w=140); brick(450,1130,pd)
+shadow(bg,pk,(0,0),off=(10,12),alpha=170,blur=5); bg.alpha_composite(pk)
 # ---------- title ----------
 tl=Image.new('RGBA',(W,H),(0,0,0,0)); td=ImageDraw.Draw(tl)
 td.text((40,1250),'76er',font=F(170),fill=(255,214,40),stroke_width=9,stroke_fill=(0,0,0),anchor='ls')
