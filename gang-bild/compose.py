@@ -70,6 +70,20 @@ tag=pad(tag,40); tag=outline(tag,10,(0,0,0,255)); tag=outline(tag,8,(255,255,255
 tag=tag.rotate(7,resample=Image.BICUBIC,expand=True)
 pos=((W-tag.width)//2-30,10); shadow(bg,tag,pos,off=(16,20),alpha=200,blur=3); bg.alpha_composite(tag,pos)
 
+def bill(sc=1.0):
+    w,h=int(170*sc),int(82*sc); b=Image.new('RGBA',(w,h),(0,0,0,0)); dd=ImageDraw.Draw(b)
+    dd.rectangle([0,0,w-1,h-1],fill=(30,30,30)); dd.rectangle([3,3,w-4,h-4],fill=(110,190,100))
+    dd.rectangle([10,10,w-11,h-11],outline=(40,110,50),width=max(2,int(3*sc)))
+    cx_,cy_=w//2,h//2; rr=int(26*sc)
+    dd.ellipse([cx_-rr,cy_-rr,cx_+rr,cy_+rr],fill=(170,225,150),outline=(40,110,50),width=3)
+    dd.text((cx_,cy_+2),'$',font=F(int(40*sc)),fill=(20,80,30),anchor='mm')
+    for (x,y) in [(22*sc,20*sc),(w-22*sc,h-20*sc)]: dd.text((x,y),'100',font=F(int(20*sc)),fill=(20,80,30),anchor='mm')
+    return pad(b,8)
+def scatter(spots):
+    for (x,y,sc,rot) in spots:
+        b=bill(sc).rotate(rot,resample=Image.BICUBIC,expand=True)
+        shadow(bg,b,(x,y),off=(8,10),alpha=150,blur=4); bg.alpha_composite(b,(x,y))
+scatter([(60,70,0.8,25),(830,60,0.9,-30),(870,300,0.7,15),(40,420,0.75,-20),(520,520,0.65,40),(640,740,0.6,-10),(300,760,0.7,12),(10,860,0.6,-35)])
 # ---------- car (comic filter) ----------
 car=Image.open('car_cut.png').convert('RGBA'); cw=880; car=car.resize((cw,int(car.height*cw/car.width)),Image.LANCZOS)
 rgb=cv2.cvtColor(np.array(car)[:,:,:3],cv2.COLOR_RGB2BGR)
@@ -93,8 +107,43 @@ bg.alpha_composite(fl.filter(ImageFilter.GaussianBlur(18)))
 
 # ---------- gangster Homer ----------
 P=90
-ho=pad(Image.open('homer_cut.png').convert('RGBA'),P); d=ImageDraw.Draw(ho)
+hc=np.array(Image.open('homer_cut.png').convert('RGBA')).astype(int)
+r_,g_,b_=hc[:,:,0],hc[:,:,1],hc[:,:,2]
+yy_,xx_=np.mgrid[0:hc.shape[0],0:hc.shape[1]]
+yellow=(r_>190)&(g_>150)&(b_<110)&(r_-g_<48)
+region=(xx_>=28)&(xx_<=168)&(yy_>=160)&(yy_<=322)
+keep=((xx_<=130)&(yy_>=228)&yellow)|(xx_<=40)
+pink=(b_>120)&(r_>120)&(g_<200)
+hc[region&(~keep|pink),3]=0
+hc[(xx_>=124)&(xx_<=182)&(yy_>=200)&(yy_<=345)&~yellow&(r_+g_+b_<600),3]=0
+am=(hc[:,:,3]>40).astype(np.uint8); n_,lab_,st_,_=cv2.connectedComponentsWithStats(am)
+big_=1+np.argmax(st_[1:,cv2.CC_STAT_AREA]); hc[lab_!=big_,3]=0
+ho=pad(Image.fromarray(hc.astype(np.uint8),'RGBA'),P); d=ImageDraw.Draw(ho)
 def s(x,y): return (x+P,y+P)
+# joint (cone from fist up-right)
+import math as _m
+bx,by=s(92,262); tx,ty=s(52,140)
+ang=_m.atan2(ty-by,tx-bx); nx,ny=-_m.sin(ang),_m.cos(ang)
+w0,w1=8,14
+poly=[(bx+nx*w0,by+ny*w0),(tx+nx*w1,ty+ny*w1),(tx-nx*w1,ty-ny*w1),(bx-nx*w0,by-ny*w0)]
+d.polygon(poly,fill=(250,245,232),outline=(0,0,0))
+d.line([poly[0],poly[1]],fill=(0,0,0),width=4); d.line([poly[3],poly[2]],fill=(0,0,0),width=4)
+for k in (0.35,0.62): # paper twist lines
+    px_,py_=bx+(tx-bx)*k,by+(ty-by)*k; ww=w0+(w1-w0)*k
+    d.line([(px_+nx*ww,py_+ny*ww),(px_-nx*ww+6,py_-ny*ww+4)],fill=(170,160,140),width=2)
+d.ellipse([tx-12,ty-12,tx+12,ty+12],fill=(60,40,30),outline=(0,0,0),width=3)
+d.ellipse([tx-8,ty-8,tx+8,ty+8],fill=(255,90,20)); d.ellipse([tx-4,ty-5,tx+3,ty+2],fill=(255,230,120))
+# smoke puffs
+for i,(ox,oy,rr) in enumerate([(-6,-24,11),(8,-50,15),(-12,-82,19),(6,-118,23),(-14,-156,27)]):
+    cx_,cy_=tx+ox,ty+oy
+    d.ellipse([cx_-rr-3,cy_-rr-3,cx_+rr+3,cy_+rr+3],fill=(40,40,50))
+    d.ellipse([cx_-rr,cy_-rr,cx_+rr,cy_+rr],fill=(225,225,235))
+    d.ellipse([cx_-rr*0.6,cy_-rr*0.7,cx_-rr*0.1,cy_-rr*0.25],fill=(255,255,255))
+# fist blob closing the hand over the joint base
+d.rounded_rectangle([s(30,240),s(128,318)],radius=34,fill=(255,217,15),outline=(0,0,0),width=4)
+for fy in (262,284,304):
+    d.arc([s(78,fy-14),s(124,fy+12)],270,90,fill=(0,0,0),width=4)
+d.arc([s(36,232),s(112,290)],200,330,fill=(0,0,0),width=4)
 # gold chain
 pts=[]
 for i in range(41):
@@ -124,6 +173,7 @@ ho=outline(pad(ho,20),7,(0,0,0,255)); ho=outline(ho,6,(255,255,255,255))
 hpos=(W-ho.width+30,H-ho.height-15)
 shadow(bg,ho,hpos,off=(-22,10),alpha=180,blur=8); bg.alpha_composite(ho,hpos)
 
+scatter([(520,1120,0.85,20),(40,1040,0.7,-8)])
 # ---------- speech bubble ----------
 b=Image.new('RGBA',(W,H),(0,0,0,0)); bd=ImageDraw.Draw(b)
 bx0,by0,bx1,by1=40,560,470,760
