@@ -36,17 +36,7 @@ for y in range(0,H,16):
         r=min(1,math.hypot(x-cx,y-cy)/750)*5.5
         if r>0.6: d.ellipse([x-r,y-r,x+r,y+r],fill=(0,0,0,120))
 bg.alpha_composite(ht)
-# skyline
-sk=Image.new('RGBA',(W,H),(0,0,0,0)); d=ImageDraw.Draw(sk); x=-20
-while x<W:
-    bw=random.randint(60,140); bh=random.randint(140,360); y0=1000-bh
-    d.rectangle([x,y0,x+bw,1100],fill=(12,4,18,255),outline=(0,0,0,255),width=4)
-    for wy in range(y0+16,990,26):
-        for wx in range(x+12,x+bw-14,22):
-            if random.random()<0.35: d.rectangle([wx,wy,wx+10,wy+14],fill=(255,200,70,255) if random.random()<0.8 else (255,60,120,255))
-    if random.random()<0.3: d.rectangle([x+bw//2-3,y0-50,x+bw//2+3,y0],fill=(12,4,18,255))
-    x+=bw+random.randint(-10,6)
-bg.alpha_composite(sk)
+exec(open('skyline_fuerth.py').read())
 # street
 st=Image.new('RGBA',(W,H),(0,0,0,0)); d=ImageDraw.Draw(st)
 d.rectangle([0,995,W,H],fill=(18,14,22,255)); d.line([(0,995),(W,995)],fill=(0,0,0,255),width=6)
@@ -83,7 +73,7 @@ def scatter(spots):
     for (x,y,sc,rot) in spots:
         b=bill(sc).rotate(rot,resample=Image.BICUBIC,expand=True)
         shadow(bg,b,(x,y),off=(8,10),alpha=150,blur=4); bg.alpha_composite(b,(x,y))
-scatter([(60,70,0.8,25),(830,60,0.9,-30),(870,300,0.7,15),(40,420,0.75,-20),(520,520,0.65,40),(640,740,0.6,-10),(300,760,0.7,12),(10,860,0.6,-35)])
+scatter([(60,70,0.8,25),(830,60,0.9,-30),(870,300,0.7,15),(40,420,0.75,-20),(600,540,0.6,40),(360,470,0.6,-15)])
 # ---------- car (comic filter) ----------
 car=Image.open('car_cut.png').convert('RGBA'); cw=880; car=car.resize((cw,int(car.height*cw/car.width)),Image.LANCZOS)
 rgb=cv2.cvtColor(np.array(car)[:,:,:3],cv2.COLOR_RGB2BGR)
