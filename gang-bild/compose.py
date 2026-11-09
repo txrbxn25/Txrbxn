@@ -174,19 +174,9 @@ hpos=(W-ho.width+30,H-ho.height-15)
 shadow(bg,ho,hpos,off=(-22,10),alpha=180,blur=8); bg.alpha_composite(ho,hpos)
 
 scatter([(520,1120,0.85,20),(40,1040,0.7,-8)])
-# ---------- speech bubble ----------
-b=Image.new('RGBA',(W,H),(0,0,0,0)); bd=ImageDraw.Draw(b)
-bx0,by0,bx1,by1=40,560,470,760
-tail=[(400,700),(470,740),(640,690)]
-bd.ellipse([bx0-6,by0-6,bx1+6,by1+6],fill=(0,0,0)); bd.polygon([(t[0]+(6 if i==1 else 0),t[1]+(4 if i==1 else 0)) for i,t in enumerate(tail)],fill=(0,0,0))
-bd.ellipse([bx0,by0,bx1,by1],fill=(255,255,255)); bd.polygon([(400,706),(460,728),(626,690)],fill=(255,255,255))
-bd.text(((bx0+bx1)//2,(by0+by1)//2-22),'MMMH...',font=F(56),fill=(0,0,0),anchor='mm')
-bd.text(((bx0+bx1)//2,(by0+by1)//2+34),'RS6!',font=F(74),fill=(220,20,40),anchor='mm',stroke_width=2,stroke_fill=(0,0,0))
-b=b.rotate(-4,resample=Image.BICUBIC,center=(255,660)); bg.alpha_composite(b)
-
 # ---------- title ----------
 tl=Image.new('RGBA',(W,H),(0,0,0,0)); td=ImageDraw.Draw(tl)
-td.text((40,1250),'76 GANG',font=F(150),fill=(255,214,40),stroke_width=9,stroke_fill=(0,0,0),anchor='ls')
+td.text((40,1250),'76er',font=F(170),fill=(255,214,40),stroke_width=9,stroke_fill=(0,0,0),anchor='ls')
 td.text((48,1312),'NO LOVE IN SPRINGFIELD',font=F(46),fill=(255,255,255),stroke_width=5,stroke_fill=(0,0,0),anchor='ls')
 tl=tl.rotate(3,resample=Image.BICUBIC,center=(300,1250))
 sh=Image.new('RGBA',(W,H),(0,0,0,0)); sh.putalpha(tl.split()[3]); bg.alpha_composite(sh.filter(ImageFilter.GaussianBlur(2)),(8,10)); bg.alpha_composite(tl)
