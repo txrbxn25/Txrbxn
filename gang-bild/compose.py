@@ -87,8 +87,7 @@ q=cv2.bitwise_and(q,q,mask=edges)
 # subtle purple rim tint
 q=cv2.cvtColor(q,cv2.COLOR_BGR2RGB).astype(np.float32); q=np.clip(q*0.95+np.array([10,0,22]),0,255).astype(np.uint8)
 alpha=np.array(car)[:,:,3]
-exec(open('door.py').read())
-car=Image.fromarray(open_door(np.ascontiguousarray(np.dstack([q,alpha]))),'RGBA')
+car=Image.fromarray(np.dstack([q,alpha]),'RGBA')
 car=outline(pad(car,12),5,(0,0,0,255))
 cpos=(10,1160-car.height); bg.alpha_composite(car,cpos)
 # headlight flare
